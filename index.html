@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BISK</title>
+    <title>Thank You!</title>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     
     <style>
@@ -215,9 +215,9 @@
         <p id="random-message" class="custom-message"></p>
         
         <div class="socials">
-            <a href="https://www.instagram.com/worththe_bisk/#" target="_blank" class="social-btn">INSTAGRAM</a>
-            <a href="https://www.facebook.com/yuri.arguelles.1" target="_blank" class="social-btn">CONTACTS</a>
-            <a href="https://www.facebook.com/profile.php?id=61593712204061" target="_blank" class="social-btn">FACEBOOK</a>
+            <a href="https://instagram.com/yourhandle" target="_blank" class="social-btn">INSTAGRAM</a>
+            <a href="https://tiktok.com/@yourhandle" target="_blank" class="social-btn">TIKTOK</a>
+            <a href="https://facebook.com/yourhandle" target="_blank" class="social-btn">FACEBOOK</a>
         </div>
     </div>
 
@@ -238,19 +238,17 @@
         const discToggle = document.getElementById('disc-toggle');
         const discLabel = document.getElementById('disc-label');
 
-        // Add your song paths here
+        // Relative path references for audio files in the same directory
         const playlist = [
-           "song1.mp3".
-             "song2.mp3".
-             "song3.mp3".
-             "song4.mp3".
-            
+            "./song1.mp3",
+            "./song2.mp3",
+            "./song3.mp3",
+            "./song4.mp3"
         ];
 
         let shuffledPlaylist = [];
         let currentIndex = 0;
 
-        // Shuffles the playlist array on every page load
         function shuffleArray(array) {
             const arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
@@ -260,25 +258,36 @@
             return arr;
         }
 
-        // Initialize shuffled order when page loads
         shuffledPlaylist = shuffleArray(playlist);
 
-        function playCurrentTrack() {
-            audio.src = shuffledPlaylist[currentIndex];
-            audio.play().then(() => {
+        async function playCurrentTrack() {
+            if (!shuffledPlaylist.length) return;
+
+            const currentTrack = shuffledPlaylist[currentIndex];
+            audio.src = currentTrack;
+            audio.load();
+
+            try {
+                await audio.play();
                 vinylDisc.classList.add('spinning');
                 discLabel.textContent = "MUSIC ON";
-            }).catch(err => console.log("Playback error: ", err));
+            } catch (err) {
+                console.error("Audio Playback Error:", err);
+                discLabel.textContent = "FILE ERROR";
+            }
         }
 
         function toggleAudio() {
             if (audio.paused) {
-                if (!audio.src) {
+                if (!audio.src || audio.src === "" || audio.src.endsWith('/')) {
                     playCurrentTrack();
                 } else {
                     audio.play().then(() => {
                         vinylDisc.classList.add('spinning');
                         discLabel.textContent = "MUSIC ON";
+                    }).catch(err => {
+                        console.error("Toggle Play Error:", err);
+                        discLabel.textContent = "FILE ERROR";
                     });
                 }
             } else {
@@ -288,22 +297,21 @@
             }
         }
 
-        // When a song ends, automatically play the next track in the shuffled list
         audio.addEventListener('ended', () => {
-            currentIndex = (currentIndex + 1) % shuffledPlaylist.length; // Loops back to start when list ends
+            currentIndex = (currentIndex + 1) % shuffledPlaylist.length;
             playCurrentTrack();
         });
 
-        // Click overlay to start playback
         overlay.addEventListener('click', () => {
             playCurrentTrack();
             overlay.classList.add('hidden');
         });
 
-        // Toggle pause/play on record click
-        discToggle.addEventListener('click', toggleAudio);
+        discToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleAudio();
+        });
 
-        // Random custom text message
         const messages = [
             "Be careful who you trust. Salt and sugar look the same.",
             "There is nothing stronger than a broken woman who has rebuilt herself.",
